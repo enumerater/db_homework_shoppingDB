@@ -192,6 +192,20 @@ async def create_order(
     await pool.wait_closed()
     return {"message": "Order created successfully"}
 
+# 查询用户下单次数
+@app.get("/user/order_count")
+async def get_user_order_count(user_name: str):
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        async with conn.cursor(aiomysql.DictCursor) as cursor:
+            await cursor.execute("select count(*) as order_count from orders where user_name = %s", (user_name,))
+            result = await cursor.fetchone()
+    pool.close()
+    await pool.wait_closed()
+    return result
+
+
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
